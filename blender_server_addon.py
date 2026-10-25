@@ -205,18 +205,20 @@ _ACTIONS = {
 def check_incoming_data():
     global _server_socket, _is_running
     if not _is_running or _server_socket is None:
-        return None
+        return None  # Arrête proprement le timer si le serveur est désactivé
         
     try:
         while True:
             try:
+                # Interception immédiate du non-bloquant s'il n'y a pas de client
                 conn, addr = _server_socket.accept()
             except BlockingIOError:
-                break
+                break  # Sortie propre de la boucle : aucun client en attente pour cette itération
                 
             try:
                 conn.settimeout(2.0)
                 data = b""
+                # Accumulation sécurisée des données jusqu'au saut de ligne
                 while not data.endswith(b"\n"):
                     chunk = conn.recv(65536)
                     if not chunk:
@@ -224,6 +226,7 @@ def check_incoming_data():
                     data += chunk
                     
                 if not data:
+                    conn.close()
                     continue
                     
                 try:
@@ -240,6 +243,7 @@ def check_incoming_data():
                 except Exception as e:
                     resp = {"success": False, "error": f"{type(e).__name__}: {e}"}
                     
+                # Renvoi de la réponse JSON au client
                 conn.sendall(json.dumps(resp).encode("utf-8") + b"\n")
                 
             except Exception as e:
@@ -249,10 +253,12 @@ def check_incoming_data():
                     conn.close()
                 except Exception:
                     pass
+                    
     except Exception as e:
-        print(f"[Server] Loop Error: {e}")
+        print(f"[Server] Global Loop Error: {e}")
         
-    return 0.1
+    return 0.1  # Rappelle la fonction dans 100ms
+
 
 # --- User Interface & Lifetime Registration ---
 
