@@ -1,6 +1,6 @@
 bl_info = {
     "name": "Blender JSON Socket Server",
-    "author": "AI Assistant & QA Harness",
+    "author": "ParisNeo + Lollms",
     "version": (2, 3),
     "blender": (4, 0, 0),
     "location": "View3D > Sidebar > Socket Server",
